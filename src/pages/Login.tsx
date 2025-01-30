@@ -4,15 +4,27 @@ import { useAuthStore } from '../store/authStore';
 import { BookOpen } from 'lucide-react';
 
 export default function Login() {
-  const { user, signInWithGoogle, handleCallback } = useAuthStore();
+  const { user, signInWithGoogle, handleCallback, isLoading } = useAuthStore();
   const [searchParams] = useSearchParams();
   const code = searchParams.get('code');
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (code) {
-      handleCallback(code);
+      handleCallback(code).catch((err) => {
+        console.error('Login error:', err);
+        setError('Failed to log in. Please try again.');
+      });
     }
-  }, [code]);
+  }, [code, handleCallback]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (user) {
     return <Navigate to="/" />;
@@ -28,6 +40,11 @@ export default function Login() {
             Join our community of knowledge seekers and share your expertise
           </p>
         </div>
+        {error && (
+          <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-2 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
         <button
           onClick={signInWithGoogle}
           className="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-blue-700 transition-colors"
