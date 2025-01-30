@@ -23,15 +23,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   handleCallback: async (code: string) => {
     try {
+      console.log("OAuth Code received:", code);
+      
       const googleUser = await auth.handleGoogleCallback(code);
+      console.log("Google User Response:", googleUser);
+  
+      if (!googleUser || !googleUser.access_token) {
+        throw new Error("Invalid Google user response");
+      }
+  
       const user = await auth.findOrCreateUser(googleUser);
+      console.log("User from Database:", user);
+  
       localStorage.setItem('user', JSON.stringify(user));
       set({ user, isLoading: false });
     } catch (error) {
-      console.error('Error handling callback:', error);
+      console.error("Error handling callback:", error);
       set({ user: null, isLoading: false });
     }
-  },
+  };
+  
   signOut: async () => {
     try {
       await auth.signOut();
@@ -42,19 +53,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   checkUser: async () => {
     try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const user = JSON.parse(savedUser);
-        const freshUser = await auth.getUser(user.id);
-        set({ user: freshUser, isLoading: false });
-      } else {
+      console.log("Running checkUser...");
+      const savedUser = localStorage.getItem("user");
+  
+      if (!savedUser) {
+        console.log("No user in localStorage. Redirecting to login.");
         set({ user: null, isLoading: false });
+        return;
       }
+  
+      const user = JSON.parse(savedUser);
+      console.log("User found in localStorage:", user);
+  
+      const freshUser = await auth.getUser(user.id);
+      console.log("Fetched fresh user data:", freshUser);
+  
+      set({ user: freshUser, isLoading: false });
     } catch (error) {
-      console.error('Error checking user:', error);
+      console.error("Error checking user:", error);
       set({ user: null, isLoading: false });
     }
-  },
+  };
+  
 }));
 
 export async function handleGoogleCallback(code: string) {
