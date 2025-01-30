@@ -56,3 +56,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+
+export async function handleGoogleCallback(code: string) {
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: REDIRECT_URI,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to exchange code for token");
+  }
+
+  return response.json(); // Should return access_token
+}
