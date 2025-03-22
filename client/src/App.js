@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import Header from './components/Header';
@@ -14,48 +14,54 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [isBlacklisted, setIsBlacklisted] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate(); // ✅ Add useNavigate
 
-  // Function to simulate checking user roles (blacklist/admin)
+  // Function to check if the user is blacklisted or admin
   const checkUserRole = async (user) => {
     const { email } = user;
-    
-    // Dummy check: if email includes "blacklist", mark as blacklisted.
+
+    // Example: Blacklist condition (replace with actual logic)
     if (email.includes('blacklist')) {
       setIsBlacklisted(true);
     }
-    
-    // Dummy check for admin: replace with your actual admin email verification
+
+    // Admin logic (replace with your actual admin email condition)
     if (email === 'admin@knowhowcommunity.com') {
       setIsAdmin(true);
     }
   };
 
   useEffect(() => {
-    // Retrieve current session using the new getSession() method
+    // ✅ Check session with getSession()
     async function checkSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
         checkUserRole(session.user);
+        navigate('/forum'); // ✅ Redirect to forum after login
+      } else {
+        navigate('/login'); // Redirect to login if no session
       }
     }
     checkSession();
 
-    // Listen for auth state changes
+    // ✅ Auth listener to listen for login/logout
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setUser(session.user);
         checkUserRole(session.user);
+        navigate('/forum'); // ✅ Redirect after login
       } else {
         setUser(null);
+        navigate('/login');
       }
     });
 
-    // Clean up the listener on component unmount
+    // Cleanup listener on unmount
     return () => authListener.subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
-  // Show error message if user is blacklisted
+  // Block access for blacklisted users
   if (isBlacklisted) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -77,7 +83,7 @@ const App = () => {
           <Route path="/forum" element={user ? <Forum /> : <Navigate to="/login" />} />
           <Route path="/resources" element={user ? <Resources /> : <Navigate to="/login" />} />
           <Route path="/admin" element={user && isAdmin ? <AdminDashboard /> : <Navigate to="/forum" />} />
-          <Route path="*" element={<Navigate to={user ? "/forum" : "/login"} />} />
+          <Route path="*" element={<Navigate to={user ? '/forum' : '/login'} />} />
         </Routes>
       </Router>
     </GoogleOAuthProvider>
