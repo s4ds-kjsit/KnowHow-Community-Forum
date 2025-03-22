@@ -1,0 +1,30 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+knowhow-community/node_modules
+knowhow-community/.pnp
+knowhow-community.pnp.js
+
+# testing
+knowhow-community/coverage
+
+# production
+knowhow-community/build
+
+# misc
+knowhow-community/.DS_Store
+knowhow-community/.env.local
+knowhow-community/.env.development.local
+knowhow-community/.env.test.local
+knowhow-community/.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+knowhow-community/node_modules
+.env
+knowhow-community/.env
+node_modules
+knowhow-community/.gitignore
